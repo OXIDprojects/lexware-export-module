@@ -33,18 +33,17 @@ $sMetadataVersion = '1.1';
 $aModule = array(
     'id'          => 'oelexwareexport',
     'title'       => array(
-        'de' => '[TR] OE Lexware Export',
+        'de' => 'OE Lexware Export',
         'en' => 'OE Lexware Export',
     ),
     'description' => array(
-        'de' => '[TR] OE Lexware Export Module',
-        'en' => 'OE Lexware Export Module',
+        'de' => 'Dieses Modul exportiert Bestellinformationen im XML-Format',
+        'en' => 'This module exports order information into an XML format',
     ),
     'thumbnail'   => 'out/pictures/picture.png',
     'version'     => '1.0.0',
     'author'      => 'OXID eSales AG',
     'url'         => 'http://www.oxid-esales.com',
-    'email'       => 'info@oxid-esales.com',
     'extend'      => array(
         'order_overview' => 'oe/lexwareexport/controllers/admin/oelexwareexportorder_overview',
     ),
@@ -59,7 +58,7 @@ $aModule = array(
     'settings'    => array(
         array('group' => 'main', 'name' => 'aOELexwareExportVAT', 'type' => 'aarr', 'value' =>
             array(
-                '1' => '15',
+                '1' => '19',
                 '2' => '7',
                 '3' => '16',
                 '4' => '20',
