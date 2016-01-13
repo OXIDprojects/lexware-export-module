@@ -1,23 +1,30 @@
 Lexware export module
 =====================
 
-Module exports order information in XML format.
+This module exports order information into an XML format
 
-Setup
------
+Installation
+------------
 
-- Clone module to your eShop `modules/oe/` directory:
+- Make a new folder "lexwareexport" in the **modules/oe/** directory of your shop installation. Download https://github.com/OXID-eSales/lexware_export_module/archive/master.zip and unpack it into this folder. **OR**
+- Git clone the module to your OXID eShop **modules/oe/** directory:
   
   .. code:: bash
   
      git clone https://github.com/OXID-eSales/lexware_export_module.git lexwareexport
-- Activate the module in administration area.
+- Activate the module in administration panel.
 
 Exporting orders
 ----------------
 
-For exporting orders to XML file, you should go to: `Administer Orders -> Orders`. Fill fields "start Order No." and
-"to Order No.". Click "Export" button.
+For exporting orders into an XML file, please go to: **Administer Orders -> Orders**. Fill the fields "start Order No." and
+"to Order No.". Click the "Export" button.
+
+Uninstallation
+--------------
+
+Disable the module in administration panel and/or delete the module folder.
+
 
 License
 -------
