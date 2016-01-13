@@ -27,6 +27,6 @@
 // -------------------------------
 $aLang = array(
     'charset' => 'UTF-8',
-    'SHOP_MODULE_GROUP_main' => '[TR] Main settings',
-    'SHOP_MODULE_aOELexwareExportVAT' => 'VAT Settings for XML export',
+    'SHOP_MODULE_GROUP_main' => 'General',
+    'SHOP_MODULE_aOELexwareExportVAT' => 'VAT settings for XML export',
 );

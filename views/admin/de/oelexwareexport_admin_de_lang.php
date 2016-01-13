@@ -26,7 +26,7 @@
 $sLangName = 'Deutsch';
 
 $aLang = array(
-    'charset' => 'ISO-8859-15', // Supports DE chars like: ä, ü, ö, etc.
+    'charset' => 'UTF-8',
     'oelexwareexport' => 'OE Lexware Export',
     'ORDER_OVERVIEW_XMLEXPORT' => 'XML Export',
     'ORDER_OVERVIEW_FROMORDERNUM' => 'ab Bestellnr.',
