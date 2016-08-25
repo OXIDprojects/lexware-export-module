@@ -3,6 +3,11 @@ Lexware export module
 
 This module exports order information into an XML format
 
+Requirements
+------------
+
+* OXID eShop v6.*
+
 Installation
 ------------
 
