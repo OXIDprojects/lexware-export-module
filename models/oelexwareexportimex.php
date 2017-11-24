@@ -46,83 +46,87 @@ class OeLexwareExportImex extends oxBase
             $fp = fopen($sFilepath, "ab");
             if (!$iStart) {
                 // first time, write header
-                fwrite($fp, "\"Artikelnummer\";\"Bezeichnung\";\"Einheit\";\"Gewicht\";\"Matchcode\";\"Preis pro Anzahl\";\"Warengruppe\";\"Warengr.-Kurzbez.\";\"Warengr.-Steuersatz\";\"Warengr.-Konto Inland\";\"Warengr.-Konto Ausland\";\"Warengr.-Konto EG\";\"Preis 1\";\"Preis 2\";\"Preis 3\";\"Preis I/1\";\"Preis I/2\";\"Preis I/3\";\"Preis II/1\";\"Preis II/2\";\"Preis II/3\";\"Preis III/1\";\"Preis III/2\";\"Preis III/3\";\"B/N\";\"Lagerartikel\";\"EK 1\";\"Währung EK1\";\"EK 2\";\"Währung EK2\";\"Staffelmenge 1\";\"Staffelmenge 2\";\"Staffelmenge 3\";\"Lieferantennummer 1\";\"Lieferantennummer 2\";\"Bestellmenge Lf.1\";\"Bestellmenge Lf.2\";\"Bestellnr. Lf.1\";\"Bestellnr. Lf.2\";\"Lieferzeit Lf.1\";\"Lieferzeit Lf.2\";\"Lagerbestand\";\"Mindestbestand\";\"Lagerort\";\"Bestellte Menge\";\"Stückliste\";\"Internet\";\"Text\"\r\n");
+                fwrite($fp, "\"Artikelnummer\";\"Bezeichnung\";\"Einheit\";\"Gewicht\";\"Matchcode\";\"Preis pro Anzahl\";\"Warengruppe\";\"Warengr.-Kurzbez.\";\"Warengr.-Steuersatz\";\"Warengr.-Konto Inland\";\"Warengr.-Konto Ausland\";\"Warengr.-Konto EG\";\"Preis 1\";\"Preis 2\";\"Preis 3\";\"Preis I/1\";\"Preis I/2\";\"Preis I/3\";\"Preis II/1\";\"Preis II/2\";\"Preis II/3\";\"Preis III/1\";\"Preis III/2\";\"Preis III/3\";\"B/N\";\"Lagerartikel\";\"EK 1\";\"WÃ¤hrung EK1\";\"EK 2\";\"WÃ¤hrung EK2\";\"Staffelmenge 1\";\"Staffelmenge 2\";\"Staffelmenge 3\";\"Lieferantennummer 1\";\"Lieferantennummer 2\";\"Bestellmenge Lf.1\";\"Bestellmenge Lf.2\";\"Bestellnr. Lf.1\";\"Bestellnr. Lf.2\";\"Lieferzeit Lf.1\";\"Lieferzeit Lf.2\";\"Lagerbestand\";\"Mindestbestand\";\"Lagerort\";\"Bestellte Menge\";\"StÃ¼ckliste\";\"Internet\";\"Text\"\r\n");
             }
             $oldMode = $oDb->setFetchMode(oxDb::FETCH_MODE_ASSOC);
             $sSelect = "select * from $sArticleTable ";
             $rs = $oDb->selectLimit($sSelect, $iLines, $iStart);
             $oDb->setFetchMode($oldMode);
-            while (!$rs->EOF) {
-                $oArticle = oxNew("oxArticle");
-                $blAdmin = $this->isAdmin();
-                // TODO: this place could be optimized. please check what we can do.
-                $this->setAdminMode(false);
-                $oArticle->load($rs->fields['OXID']);
-                $this->setAdminMode($blAdmin);
+            if ($rs != false && $rs->count() > 0) {
+                while (!$rs->EOF) {
+                    $row = $rs->getFields();
+                    $oArticle = oxNew("oxArticle");
+                    $blAdmin = $this->isAdmin();
+                    // TODO: this place could be optimized. please check what we can do.
+                    $this->setAdminMode(false);
+                    $oArticle->load($row['OXID']);
+                    $this->setAdminMode($blAdmin);
 
-                $sSelect = "select oxtitle from " . $oArticle->getViewName() . " where oxid = " . $oDb->quote($oArticle->oxarticles__oxparentid->value);
-                $oTitle = $oDb->getOne($sSelect);
-                if ($oTitle != false && strlen($oTitle)) {
-                    $nTitle = $this->interForm($oTitle);
-                } else {
-                    $nTitle = $this->interForm($oArticle->oxarticles__oxtitle->value);
+                    $sSelect = "select oxtitle from " . $oArticle->getViewName() . " where oxid = " . $oDb->quote($oArticle->oxarticles__oxparentid->value);
+                    $oTitle = $oDb->getOne($sSelect);
+                    if ($oTitle != false && strlen($oTitle)) {
+                        $nTitle = $this->interForm($oTitle);
+                    } else {
+                        $nTitle = $this->interForm($oArticle->oxarticles__oxtitle->value);
+                    }
+                    $sToFile = $oArticle->oxarticles__oxartnum->value // Artikelnummer
+                        //.";".$this->interForm($oArticle->oxarticles__oxshortdesc->value." ".$oArticle->oxarticles__oxvarselect->value) // Bezeichnung
+                        . ";" . $nTitle . " " . $this->interForm($oArticle->oxarticles__oxvarselect->value) // Bezeichnung
+                        . ";" . "Stueck" // Einheit
+                        . ";" . $oArticle->oxarticles__oxweight->value // Gewicht
+                        . ";" . $oArticle->oxarticles__oxartnum->value // Matchcode
+                        . ";" . "1,000" // Preis pro Anzahl
+                        . ";" // Warengruppe
+                        . ";" // Warengr.-Kurzbez.
+                        . ";" // Warengr.-Steuersatz
+                        . ";" // Warengr.-Konto Inland
+                        . ";" // Warengr.-Konto Ausland
+                        . ";" // Warengr.-Konto EG
+                        . ";" . number_format($oArticle->oxarticles__oxprice->value, 2, '.', '') // Preis 1
+                        . ";" // Preis 2
+                        . ";" // Preis 3
+                        . ";" // Preis I/1
+                        . ";" // Preis I/2
+                        . ";" // Preis I/3
+                        . ";" // Preis II/1
+                        . ";" // Preis II/2
+                        . ";" // Preis II/3
+                        . ";" // Preis III/1
+                        . ";" // Preis III/2
+                        . ";" // Preis III/3
+                        . ";" // B/N
+                        . ";" // Lagerartikel
+                        //.";".number_format($oArticle->oxarticles__oxtprice->value, 2, '.', '')// EK 1
+                        // #343 fix
+                        . ";" . number_format($oArticle->oxarticles__oxbprice->value, 2, '.', '') // EK 1
+                        . ";" // WÃ¤hrung EK1
+                        . ";" // EK 2
+                        . ";" // WÃ¤hrung EK2
+                        . ";" // Staffelmenge 1
+                        . ";" // Staffelmenge 2
+                        . ";" // Staffelmenge 3
+                        . ";" // Lieferantennummer 1
+                        . ";" // Lieferantennummer 2
+                        . ";" // Bestellmenge Lf.1
+                        . ";" // Bestellmenge Lf.2
+                        . ";" // Bestellnr. Lf.1
+                        . ";" // Bestellnr. Lf.2
+                        . ";" // Lieferzeit Lf.1
+                        . ";" // Lieferzeit Lf.2
+                        . ";" . $oArticle->oxarticles__oxstock->value // Lagerbestand
+                        . ";" // Mindestbestand
+                        . ";" // Lagerort
+                        . ";" // Bestellte Menge
+                        . ";" // StÃ¼ckliste
+                        . ";1" // Internet
+                        . ";" . $this->interForm($oArticle->oxarticles__oxshortdesc->value . $oArticle->getLongDesc()) // Text
+                        . ";";
+                    $sToFile .= "\r\n";
+
+                    fwrite($fp, $sToFile);
+
+                    $rs->fetchRow();
                 }
-                $sToFile = $oArticle->oxarticles__oxartnum->value // Artikelnummer
-                    //.";".$this->interForm($oArticle->oxarticles__oxshortdesc->value." ".$oArticle->oxarticles__oxvarselect->value) // Bezeichnung
-                    . ";" . $nTitle . " " . $this->interForm($oArticle->oxarticles__oxvarselect->value) // Bezeichnung
-                    . ";" . "Stueck" // Einheit
-                    . ";" . $oArticle->oxarticles__oxweight->value // Gewicht
-                    . ";" . $oArticle->oxarticles__oxartnum->value // Matchcode
-                    . ";" . "1,000" // Preis pro Anzahl
-                    . ";" // Warengruppe
-                    . ";" // Warengr.-Kurzbez.
-                    . ";" // Warengr.-Steuersatz
-                    . ";" // Warengr.-Konto Inland
-                    . ";" // Warengr.-Konto Ausland
-                    . ";" // Warengr.-Konto EG
-                    . ";" . number_format($oArticle->oxarticles__oxprice->value, 2, '.', '') // Preis 1
-                    . ";" // Preis 2
-                    . ";" // Preis 3
-                    . ";" // Preis I/1
-                    . ";" // Preis I/2
-                    . ";" // Preis I/3
-                    . ";" // Preis II/1
-                    . ";" // Preis II/2
-                    . ";" // Preis II/3
-                    . ";" // Preis III/1
-                    . ";" // Preis III/2
-                    . ";" // Preis III/3
-                    . ";" // B/N
-                    . ";" // Lagerartikel
-                    //.";".number_format($oArticle->oxarticles__oxtprice->value, 2, '.', '')// EK 1
-                    // #343 fix
-                    . ";" . number_format($oArticle->oxarticles__oxbprice->value, 2, '.', '') // EK 1
-                    . ";" // Währung EK1
-                    . ";" // EK 2
-                    . ";" // Währung EK2
-                    . ";" // Staffelmenge 1
-                    . ";" // Staffelmenge 2
-                    . ";" // Staffelmenge 3
-                    . ";" // Lieferantennummer 1
-                    . ";" // Lieferantennummer 2
-                    . ";" // Bestellmenge Lf.1
-                    . ";" // Bestellmenge Lf.2
-                    . ";" // Bestellnr. Lf.1
-                    . ";" // Bestellnr. Lf.2
-                    . ";" // Lieferzeit Lf.1
-                    . ";" // Lieferzeit Lf.2
-                    . ";" . $oArticle->oxarticles__oxstock->value // Lagerbestand
-                    . ";" // Mindestbestand
-                    . ";" // Lagerort
-                    . ";" // Bestellte Menge
-                    . ";" // Stückliste
-                    . ";1" // Internet
-                    . ";" . $this->interForm($oArticle->oxarticles__oxshortdesc->value . $oArticle->getLongDesc()) // Text
-                    . ";";
-                $sToFile .= "\r\n";
-
-                fwrite($fp, $sToFile);
-                $rs->moveNext();
             }
 
             fclose($fp);
@@ -185,13 +189,13 @@ class OeLexwareExportImex extends oxBase
         }
 
         $nValue = str_replace("&nbsp;", " ", $nValue);
-        $nValue = str_replace("&auml;", "ä", $nValue);
-        $nValue = str_replace("&ouml;", "ö", $nValue);
-        $nValue = str_replace("&uuml;", "ü", $nValue);
-        $nValue = str_replace("&Auml;", "Ä", $nValue);
-        $nValue = str_replace("&Ouml;", "Ö", $nValue);
-        $nValue = str_replace("&Uuml;", "Ü", $nValue);
-        $nValue = str_replace("&szlig;", "ß", $nValue);
+        $nValue = str_replace("&auml;", "Ã¤", $nValue);
+        $nValue = str_replace("&ouml;", "Ã¶", $nValue);
+        $nValue = str_replace("&uuml;", "Ã¼", $nValue);
+        $nValue = str_replace("&Auml;", "Ã„", $nValue);
+        $nValue = str_replace("&Ouml;", "Ã–", $nValue);
+        $nValue = str_replace("&Uuml;", "Ãœ", $nValue);
+        $nValue = str_replace("&szlig;", "ÃŸ", $nValue);
         // usually & symbol goes (or should go) like that:
         // "& text...", so we predict that this is a rule
         // and replace it with special HTML code
@@ -268,7 +272,7 @@ class OeLexwareExportImex extends oxBase
             $dOrderCurRate = (double) $oOrder->oxorder__oxcurrate->value;
             $oUser = oxNew("oxUser");
             $oUser->load($oOrder->oxorder__oxuserid->value);
-            $sExport = "<Bestellung " . $this->_convertStr("zurückgestellt") . "=\"Nein\" bearbeitet=\"Nein\" " . $this->_convertStr("übertragen") . "=\"Nein\">$sNewLine";
+            $sExport = "<Bestellung " . $this->_convertStr("zurÃ¼ckgestellt") . "=\"Nein\" bearbeitet=\"Nein\" " . $this->_convertStr("Ã¼bertragen") . "=\"Nein\">$sNewLine";
             $sExport .= "<Bestellnummer>" . $oOrder->oxorder__oxordernr->value . "</Bestellnummer>$sNewLine";
             $sExport .= "<Rechnungsnummer>" . $oOrder->oxorder__oxbillnr->value . "</Rechnungsnummer>$sNewLine";
             $sExport .= "<Standardwaehrung>978</Standardwaehrung>$sNewLine";
@@ -417,7 +421,7 @@ class OeLexwareExportImex extends oxBase
     }
 
     /**
-     * Converts string from 'ISO-8859-15' to defined charset
+     * Converts string from 'UTF-8' to defined charset
      *
      * @param string $sStr string to convert
      *
@@ -427,10 +431,10 @@ class OeLexwareExportImex extends oxBase
     {
         $sCharset = $this->_getCharset();
 
-        if ($sCharset == 'ISO-8859-15') {
+        if ($sCharset == 'UTF-8') {
             return $sStr;
         }
 
-        return $sStr = iconv('ISO-8859-15', $sCharset, $sStr);
+        return $sStr = iconv('UTF-8', $sCharset, $sStr);
     }
 }
