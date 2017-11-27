@@ -35,11 +35,12 @@ class oeLexwareExportOrder_Overview extends oeLexwareExportOrder_Overview_parent
      */
     public function oeLexwareExportExportLex()
     {
-        $sOrderNr = oxRegistry::getConfig()->getRequestParameter("ordernr");
-        $sToOrderNr = oxRegistry::getConfig()->getRequestParameter("toordernr");
+        $request = \OxidEsales\Eshop\Core\Registry::get(\OxidEsales\Eshop\Core\Request::class);
+        $sOrderNr = $request->getRequestParameter("ordernr");
+        $sToOrderNr = $request->getRequestParameter("toordernr");
         $oImex = oxNew("OeLexwareExportImex");
         if (($sLexware = $oImex->exportLexwareOrders($sOrderNr, $sToOrderNr))) {
-            $oUtils = oxRegistry::getUtils();
+            $oUtils = \OxidEsales\Eshop\Core\Registry::getUtils();
             $oUtils->setHeader("Pragma: public");
             $oUtils->setHeader("Cache-Control: must-revalidate, post-check=0, pre-check=0");
             $oUtils->setHeader("Expires: 0");

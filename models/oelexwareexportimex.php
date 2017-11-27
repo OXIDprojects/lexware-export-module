@@ -25,7 +25,7 @@
 /**
  * Lexware manager
  */
-class OeLexwareExportImex extends oxBase
+class OeLexwareExportImex extends \OxidEsales\Eshop\Core\Model\BaseModel
 {
     /**
      * Performs Lexware export to file.
@@ -38,8 +38,9 @@ class OeLexwareExportImex extends oxBase
      */
     public function exportLexwareArticles($iStart, $iLines, $sFilepath)
     {
-        $oDb = oxDb::getDb();
-        $sArticleTable = getViewName('oxarticles');
+        $oDb = \OxidEsales\Eshop\Core\DatabaseProvider::getDb();
+        $viewNameGenerator = \OxidEsales\Eshop\Core\Registry::get(\OxidEsales\Eshop\Core\TableViewNameGenerator::class);
+        $sArticleTable = $viewNameGenerator->getViewName("oxarticles");
         $sSelect = "select count(oxid) from $sArticleTable ";
         $iSize = (int) $oDb->getOne($sSelect);
         if ($iStart < $iSize) {
@@ -48,14 +49,14 @@ class OeLexwareExportImex extends oxBase
                 // first time, write header
                 fwrite($fp, "\"Artikelnummer\";\"Bezeichnung\";\"Einheit\";\"Gewicht\";\"Matchcode\";\"Preis pro Anzahl\";\"Warengruppe\";\"Warengr.-Kurzbez.\";\"Warengr.-Steuersatz\";\"Warengr.-Konto Inland\";\"Warengr.-Konto Ausland\";\"Warengr.-Konto EG\";\"Preis 1\";\"Preis 2\";\"Preis 3\";\"Preis I/1\";\"Preis I/2\";\"Preis I/3\";\"Preis II/1\";\"Preis II/2\";\"Preis II/3\";\"Preis III/1\";\"Preis III/2\";\"Preis III/3\";\"B/N\";\"Lagerartikel\";\"EK 1\";\"Währung EK1\";\"EK 2\";\"Währung EK2\";\"Staffelmenge 1\";\"Staffelmenge 2\";\"Staffelmenge 3\";\"Lieferantennummer 1\";\"Lieferantennummer 2\";\"Bestellmenge Lf.1\";\"Bestellmenge Lf.2\";\"Bestellnr. Lf.1\";\"Bestellnr. Lf.2\";\"Lieferzeit Lf.1\";\"Lieferzeit Lf.2\";\"Lagerbestand\";\"Mindestbestand\";\"Lagerort\";\"Bestellte Menge\";\"Stückliste\";\"Internet\";\"Text\"\r\n");
             }
-            $oldMode = $oDb->setFetchMode(oxDb::FETCH_MODE_ASSOC);
+            $oldMode = $oDb->setFetchMode(\OxidEsales\Eshop\Core\DatabaseProvider::FETCH_MODE_ASSOC);
             $sSelect = "select * from $sArticleTable ";
             $rs = $oDb->selectLimit($sSelect, $iLines, $iStart);
             $oDb->setFetchMode($oldMode);
             if ($rs != false && $rs->count() > 0) {
                 while (!$rs->EOF) {
                     $row = $rs->getFields();
-                    $oArticle = oxNew("oxArticle");
+                    $oArticle = oxNew(\OxidEsales\Eshop\Application\Model\Article::class);
                     $blAdmin = $this->isAdmin();
                     // TODO: this place could be optimized. please check what we can do.
                     $this->setAdminMode(false);
@@ -183,7 +184,7 @@ class OeLexwareExportImex extends oxBase
         //removing simple & (and not  &uuml; chars)
         //(not full just a simple check for existing customers for cases like Johnson&Johnson)
 
-        $oStr = getStr();
+        $oStr = \OxidEsales\Eshop\Core\Str::getStr();
         if ($oStr->strpos($nValue, "&") !== false && $oStr->strpos($nValue, ";") == false) {
             $nValue = str_replace("&", "&amp;", $nValue);
         }
@@ -253,7 +254,7 @@ class OeLexwareExportImex extends oxBase
             $sSelect .= "and oxordernr <= $iToOrderNr ";
         }
 
-        $oOrderlist = oxNew("oxlist");
+        $oOrderlist = oxNew(\OxidEsales\Eshop\Core\Model\ListModel::class);
         $oOrderlist->init("oxorder");
         $oOrderlist->selectString($sSelect);
 
@@ -270,14 +271,14 @@ class OeLexwareExportImex extends oxBase
         foreach ($oOrderlist as $oOrder) {
             // Convert each amount of money with currency rate of the order
             $dOrderCurRate = (double) $oOrder->oxorder__oxcurrate->value;
-            $oUser = oxNew("oxUser");
+            $oUser = oxNew(\OxidEsales\Eshop\Application\Model\User::class);
             $oUser->load($oOrder->oxorder__oxuserid->value);
             $sExport = "<Bestellung " . $this->_convertStr("zurückgestellt") . "=\"Nein\" bearbeitet=\"Nein\" " . $this->_convertStr("übertragen") . "=\"Nein\">$sNewLine";
             $sExport .= "<Bestellnummer>" . $oOrder->oxorder__oxordernr->value . "</Bestellnummer>$sNewLine";
             $sExport .= "<Rechnungsnummer>" . $oOrder->oxorder__oxbillnr->value . "</Rechnungsnummer>$sNewLine";
             $sExport .= "<Standardwaehrung>978</Standardwaehrung>$sNewLine";
             $sExport .= "<Bestelldatum>$sNewLine";
-            $sDBDate = oxRegistry::get("oxUtilsDate")->formatDBDate($oOrder->oxorder__oxorderdate->value);
+            $sDBDate = \OxidEsales\Eshop\Core\Registry::get("oxUtilsDate")->formatDBDate($oOrder->oxorder__oxorderdate->value);
             $sExport .= "<Datum>" . substr($sDBDate, 0, 10) . "</Datum>$sNewLine";
             $sExport .= "<Zeit>" . substr($sDBDate, 11, 8) . "</Zeit>$sNewLine";
             $sExport .= "</Bestelldatum>$sNewLine";
@@ -285,7 +286,7 @@ class OeLexwareExportImex extends oxBase
             $sExport .= "<Kundennummer>" . /*$this->interForm($oUser->oxuser__oxcustnr->value).*/
                 "</Kundennummer>$sNewLine";
             $sExport .= "<Firmenname>" . $this->interForm($oOrder->oxorder__oxbillcompany->value) . "</Firmenname>$sNewLine";
-            $sExport .= "<Anrede>" . $this->interForm(oxRegistry::getLang()->translateString($oOrder->oxorder__oxbillsal->value)) . "</Anrede>$sNewLine";
+            $sExport .= "<Anrede>" . $this->interForm(\OxidEsales\Eshop\Core\Registry::getLang()->translateString($oOrder->oxorder__oxbillsal->value)) . "</Anrede>$sNewLine";
             $sExport .= "<Vorname>" . $this->interForm($oOrder->oxorder__oxbillfname->value) . "</Vorname>$sNewLine";
             $sExport .= "<Name>" . $this->interForm($oOrder->oxorder__oxbilllname->value) . "</Name>$sNewLine";
             $sExport .= "<Strasse>" . $this->interForm($oOrder->oxorder__oxbillstreet->value) . " " . $this->interForm($oOrder->oxorder__oxbillstreetnr->value) . "</Strasse>$sNewLine";
@@ -392,7 +393,7 @@ class OeLexwareExportImex extends oxBase
             $sExport = "</Artikelliste>$sNewLine";
 
             $sExport .= "<Zahlung>$sNewLine";
-            $oPayment = oxNew("oxPayment");
+            $oPayment = oxNew(\OxidEsales\Eshop\Application\Model\Payment::class);
             $oPayment->load($oOrder->oxorder__oxpaymenttype->value);
 
             $sExport .= "<Art>" . $oPayment->oxpayments__oxdesc->value . "</Art>$sNewLine";
@@ -417,7 +418,7 @@ class OeLexwareExportImex extends oxBase
      */
     protected function _getCharset()
     {
-        return oxRegistry::getLang()->translateString('charset');
+        return \OxidEsales\Eshop\Core\Registry::getLang()->translateString('charset');
     }
 
     /**
