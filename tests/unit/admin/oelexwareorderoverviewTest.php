@@ -18,10 +18,10 @@ class OeLexwareOrderOverviewTest extends OxidEsales\TestingLibrary\UnitTestCase
         oxTestModules::addFunction('oxUtils', 'showMessageAndExit', '{ $this->_aHeaderData[] = $aA[0]; }');
 
         // testing..
-        $oView = oxNew('Order_Overview');
+        $oView = oxNew(\OxidEsales\Eshop\Application\Controller\Admin\OrderOverview::class);
         $oView->oeLexwareExportExportLex();
 
-        $aHeaders = oxRegistry::getUtils()->getHeaders();
+        $aHeaders = \OxidEsales\Eshop\Core\Registry::getUtils()->getHeaders();
         $this->assertEquals("Pragma: public", $aHeaders[0]);
         $this->assertEquals("Cache-Control: must-revalidate, post-check=0, pre-check=0", $aHeaders[1]);
         $this->assertEquals("Expires: 0", $aHeaders[2]);

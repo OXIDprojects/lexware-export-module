@@ -22,8 +22,17 @@
  * @copyright (C) OXID eSales AG 2003-2015
  */
 
+use OxidEsales\Eshop\Core\Field;
+
 class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
 {
+    protected $adminUserId;
+
+    protected function setUp()
+    {
+        $db = \OxidEsales\Eshop\Core\DatabaseProvider::getDb();
+        $this->adminUserId = $db->getOne("select OXID from oxuser where OXUSERNAME='admin'");
+    }
 
     /**
      * Tear down the fixture.
@@ -41,7 +50,7 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
     {
         $myConfig = $this->getConfig();
         //$sFile = $myConfig->sShopDir.'/tmp/test.xpr';
-        $sFile = oxregistry::get("oxConfigFile")->getVar("sCompileDir") . '/test.xpr';
+        $sFile = \OxidEsales\Eshop\Core\Registry::get("oxConfigFile")->getVar("sCompileDir") . '/test.xpr';
         @unlink($sFile);
         $oImex = new OeLexwareExportImex();
         if (!$oImex->exportLexwareArticles(0, 1000, $sFile)) {
@@ -57,11 +66,11 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
             . '"Warengruppe";"Warengr.-Kurzbez.";"Warengr.-Steuersatz";"Warengr.-Konto Inland";'
             . '"Warengr.-Konto Ausland";"Warengr.-Konto EG";"Preis 1";"Preis 2";"Preis 3";'
             . '"Preis I/1";"Preis I/2";"Preis I/3";"Preis II/1";"Preis II/2";"Preis II/3";"Preis III/1";'
-            . '"Preis III/2";"Preis III/3";"B/N";"Lagerartikel";"EK 1";"W‰hrung EK1";"EK 2";'
-            . '"W‰hrung EK2";"Staffelmenge 1";"Staffelmenge 2";"Staffelmenge 3";"Lieferantennummer 1";'
+            . '"Preis III/2";"Preis III/3";"B/N";"Lagerartikel";"EK 1";"W√§hrung EK1";"EK 2";'
+            . '"W√§hrung EK2";"Staffelmenge 1";"Staffelmenge 2";"Staffelmenge 3";"Lieferantennummer 1";'
             . '"Lieferantennummer 2";"Bestellmenge Lf.1";"Bestellmenge Lf.2";"Bestellnr. Lf.1";'
             . '"Bestellnr. Lf.2";"Lieferzeit Lf.1";"Lieferzeit Lf.2";"Lagerbestand";"Mindestbestand";'
-            . '"Lagerort";"Bestellte Menge";"St¸ckliste";"Internet";"Text"', $aContents[0]
+            . '"Lagerort";"Bestellte Menge";"St√ºckliste";"Internet";"Text"', $aContents[0]
         );
         $blFound = false;
         foreach ($aContents as $content) {
@@ -69,7 +78,7 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
                 $this->assertEquals(
                     '2000;Wanduhr ROBOT ;Stueck;0;2000;1,000;;;;;;;29.00;;;;;;;;;;;;;;0.00;;;;;;;;;'
                     . ';;;;;;2;;;;;1; Wanduhr im coolen ROBOTER Look! Durchmesser: 40 cm Material: Glas '
-                    . 'Bezugshinweis: bei Interesse kˆnnen Sie dieses Produkt bei www.desaster.com erwerben.;', $content
+                    . 'Bezugshinweis: bei Interesse k√∂nnen Sie dieses Produkt bei www.desaster.com erwerben.;', $content
                 );
                 $blFound = true;
                 break;
@@ -87,11 +96,11 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
     public function testInterForm()
     {
         $oImex = new OeLexwareExportImex();
-        $this->assertEquals("abra!@#¸ &amp; $%^*''_'cadabra' ", $oImex->InterForm("abra<br />!@#&uuml; & $%^*()_\"cadabra'\r\n "));
+        $this->assertEquals("abra!@#√º &amp; $%^*''_'cadabra' ", $oImex->InterForm("abra<br />!@#&uuml; & $%^*()_\"cadabra'\r\n "));
         $this->assertEquals("abra&amp;cadabra", $oImex->InterForm("abra&cadabra"));
         $o = new stdClass;
         $o->fldtype = "text";
-        $this->assertEquals("abra<br />!@#¸ &amp; $%^*''_'cadabra' \t", $oImex->InterForm("abra<br />!@#&uuml; & $%^*()_\"cadabra'\r\n \t", $o));
+        $this->assertEquals("abra<br />!@#√º &amp; $%^*''_'cadabra' \t", $oImex->InterForm("abra<br />!@#&uuml; & $%^*()_\"cadabra'\r\n \t", $o));
     }
 
     public function testInternPrice()
@@ -114,57 +123,57 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
     {
         $myConfig = $this->getConfig();
 
-        $oOrder = new oxOrder();
+        $oOrder = oxNew(\OxidEsales\Eshop\Application\Model\Order::class);
         $oOrder->setId('_testOrder');
-        $oOrder->oxorder__oxshopid = new oxField($myConfig->getBaseShopId());
-        $oOrder->oxorder__oxuserid = new oxField('oxdefaultadmin');
-        $oOrder->oxorder__oxorderdate = new oxField('2007-02-21 00:00:00');
-        $oOrder->oxorder__oxordernr = new oxField('9991');
-        $oOrder->oxorder__oxbillnr = new oxField('15');
-        $oOrder->oxorder__oxbillcompany = new oxField('billcomp');
-        $oOrder->oxorder__oxbillemail = new oxField('billemail');
-        $oOrder->oxorder__oxbillfname = new oxField('billfname');
-        $oOrder->oxorder__oxbilllname = new oxField('billlname');
-        $oOrder->oxorder__oxbillstreet = new oxField('billstreet');
-        $oOrder->oxorder__oxbillstreetnr = new oxField('billstnr');
-        $oOrder->oxorder__oxbilladdinfo = new oxField('billaddinfo');
-        $oOrder->oxorder__oxbillustid = new oxField('billustid');
-        $oOrder->oxorder__oxbillcity = new oxField('billcity');
-        $oOrder->oxorder__oxbillcountryid = new oxField('a7c40f631fc920687.20179984');
-        $oOrder->oxorder__oxbillzip = new oxField('billzip');
-        $oOrder->oxorder__oxbillfon = new oxField('billfon');
-        $oOrder->oxorder__oxbillfax = new oxField('billfax');
-        $oOrder->oxorder__oxbillsal = new oxField('MR');
-        $oOrder->oxorder__oxpaymentid = new oxField('oxempty');
-        $oOrder->oxorder__oxdelcost = new oxField('1');
-        $oOrder->oxorder__oxdelvat = new oxField('2');
-        $oOrder->oxorder__oxpaycost = new oxField('3');
-        $oOrder->oxorder__oxpayvat = new oxField('4');
-        $oOrder->oxorder__oxwrapcost = new oxField('5');
-        $oOrder->oxorder__oxwrapvat = new oxField('6');
+        $oOrder->oxorder__oxshopid = new Field($myConfig->getBaseShopId());
+        $oOrder->oxorder__oxuserid = new Field($this->adminUserId);
+        $oOrder->oxorder__oxorderdate = new Field('2007-02-21 00:00:00');
+        $oOrder->oxorder__oxordernr = new Field('9991');
+        $oOrder->oxorder__oxbillnr = new Field('15');
+        $oOrder->oxorder__oxbillcompany = new Field('billcomp');
+        $oOrder->oxorder__oxbillemail = new Field('billemail');
+        $oOrder->oxorder__oxbillfname = new Field('billfname');
+        $oOrder->oxorder__oxbilllname = new Field('billlname');
+        $oOrder->oxorder__oxbillstreet = new Field('billstreet');
+        $oOrder->oxorder__oxbillstreetnr = new Field('billstnr');
+        $oOrder->oxorder__oxbilladdinfo = new Field('billaddinfo');
+        $oOrder->oxorder__oxbillustid = new Field('billustid');
+        $oOrder->oxorder__oxbillcity = new Field('billcity');
+        $oOrder->oxorder__oxbillcountryid = new Field('a7c40f631fc920687.20179984');
+        $oOrder->oxorder__oxbillzip = new Field('billzip');
+        $oOrder->oxorder__oxbillfon = new Field('billfon');
+        $oOrder->oxorder__oxbillfax = new Field('billfax');
+        $oOrder->oxorder__oxbillsal = new Field('MR');
+        $oOrder->oxorder__oxpaymentid = new Field('oxempty');
+        $oOrder->oxorder__oxdelcost = new Field('1');
+        $oOrder->oxorder__oxdelvat = new Field('2');
+        $oOrder->oxorder__oxpaycost = new Field('3');
+        $oOrder->oxorder__oxpayvat = new Field('4');
+        $oOrder->oxorder__oxwrapcost = new Field('5');
+        $oOrder->oxorder__oxwrapvat = new Field('6');
 
-        $oOrder->oxorder__oxdelcompany = new oxField('delcomp');
-        $oOrder->oxorder__oxdelfname = new oxField('delfname');
-        $oOrder->oxorder__oxdellname = new oxField('dellname');
-        $oOrder->oxorder__oxdelstreet = new oxField('delstreet');
-        $oOrder->oxorder__oxdelstreetnr = new oxField('delstnr');
-        $oOrder->oxorder__oxdelzip = new oxField('delzip');
-        $oOrder->oxorder__oxdelcity = new oxField('delcity');
-        $oOrder->oxorder__oxdelcountry = new oxField('a7c40f631fc920687.20179984');
+        $oOrder->oxorder__oxdelcompany = new Field('delcomp');
+        $oOrder->oxorder__oxdelfname = new Field('delfname');
+        $oOrder->oxorder__oxdellname = new Field('dellname');
+        $oOrder->oxorder__oxdelstreet = new Field('delstreet');
+        $oOrder->oxorder__oxdelstreetnr = new Field('delstnr');
+        $oOrder->oxorder__oxdelzip = new Field('delzip');
+        $oOrder->oxorder__oxdelcity = new Field('delcity');
+        $oOrder->oxorder__oxdelcountry = new Field('a7c40f631fc920687.20179984');
 
         $oOrder->save();
 
         // one test order article
-        $oOrderArt = new oxOrderArticle();
+        $oOrderArt = oxNew(\OxidEsales\Eshop\Application\Model\OrderArticle::class);
         $oOrderArt->setId('_testOrderArticle');
-        $oOrderArt->oxorderarticles__oxorderid = new oxField('_testOrder');
-        $oOrderArt->oxorderarticles__oxvat = new oxField(19);
-        $oOrderArt->oxorderarticles__oxartnum = new oxField('1126');
-        $oOrderArt->oxorderarticles__oxamount = new oxField(1);
-        $oOrderArt->oxorderarticles__oxtitle = new oxField('Bar-Set ABSINTH');
-        $oOrderArt->oxorderarticles__oxselvariant = new oxField('oxselvariant');
-        $oOrderArt->oxorderarticles__oxnetprice = new oxField(28.57);
-        $oOrderArt->oxorderarticles__oxbrutprice = new oxField(34);
+        $oOrderArt->oxorderarticles__oxorderid = new Field('_testOrder');
+        $oOrderArt->oxorderarticles__oxvat = new Field(19);
+        $oOrderArt->oxorderarticles__oxartnum = new Field('1126');
+        $oOrderArt->oxorderarticles__oxamount = new Field(1);
+        $oOrderArt->oxorderarticles__oxtitle = new Field('Bar-Set ABSINTH');
+        $oOrderArt->oxorderarticles__oxselvariant = new Field('oxselvariant');
+        $oOrderArt->oxorderarticles__oxnetprice = new Field(28.57);
+        $oOrderArt->oxorderarticles__oxbrutprice = new Field(34);
         $oOrderArt->save();
 
         $myConfig = $this->getConfig();
@@ -172,13 +181,13 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
         $oImex = new OeLexwareExportImex();
         $sResult = str_replace(array("\r", "   "), '', $oImex->exportLexwareOrders(9991, 9991));
         $this->assertEquals(
-            "<?xml version=\"1.0\" encoding=\"ISO-8859-15\"?>\n<Bestellliste>\n<Bestellung zur¸ckgestellt=\"Nein\" bearbeitet=\"Nein\" ¸bertragen=\"Nein\">\n"
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Bestellliste>\n<Bestellung zur√ºckgestellt=\"Nein\" bearbeitet=\"Nein\" √ºbertragen=\"Nein\">\n"
             . "<Bestellnummer>9991</Bestellnummer>\n<Rechnungsnummer>15</Rechnungsnummer>\n<Standardwaehrung>978</Standardwaehrung>\n<Bestelldatum>\n<Datum>21.02.2007</Datum>\n<Zeit>00:00:00</Zeit>\n</Bestelldatum>\n<Kunde>\n<Kundennummer></Kundennummer>\n"
             . "<Firmenname>billcomp</Firmenname>\n<Anrede>Herr</Anrede>\n<Vorname>billfname</Vorname>\n<Name>billlname</Name>\n<Strasse>billstreet billstnr</Strasse>\n"
             . "<PLZ>billzip</PLZ>\n<Ort>billcity</Ort>\n<Bundesland></Bundesland>\n<Land>Deutschland</Land>\n<Email>billemail</Email>\n<Telefon>billfon</Telefon>\n<Telefon2></Telefon2>\n"
             . "<Fax>billfax</Fax>\n<Lieferadresse>\n<Firmenname>delcomp</Firmenname>\n<Vorname>delfname</Vorname>\n<Name>dellname</Name>\n<Strasse>delstreet delstnr</Strasse>\n<PLZ>delzip</PLZ>\n<Ort>delcity</Ort>\n<Bundesland></Bundesland>\n"
             . "<Land></Land>\n</Lieferadresse>\n<Matchcode>billlname, billfname</Matchcode>\n<fSteuerbar>ja</fSteuerbar>\n</Kunde>\n<Artikelliste>\n<Artikel>\n<Artikelzusatzinfo><Nettostaffelpreis></Nettostaffelpreis></Artikelzusatzinfo>\n"
-            . "<SteuersatzID></SteuersatzID>\n<Steuersatz>0.19</Steuersatz>\n<Artikelnummer>1126</Artikelnummer>\n<Anzahl>1</Anzahl>\n<Produktname>Bar-Set ABSINTH/oxselvariant</Produktname>\n"
+            . "<SteuersatzID>1</SteuersatzID>\n<Steuersatz>0.19</Steuersatz>\n<Artikelnummer>1126</Artikelnummer>\n<Anzahl>1</Anzahl>\n<Produktname>Bar-Set ABSINTH/oxselvariant</Produktname>\n"
             . "<Rabatt>0.00</Rabatt>\n<Preis>34.00</Preis>\n</Artikel>\n<GesamtRabatt>0.00</GesamtRabatt>\n<GesamtNetto>28.57</GesamtNetto>\n"
             . "<Lieferkosten>1.00</Lieferkosten>\n<Zahlungsartkosten>3.00</Zahlungsartkosten>\n<GesamtBrutto>34.00</GesamtBrutto>\n<Bemerkung></Bemerkung>\n</Artikelliste>\n<Zahlung>\n<Art></Art>\n</Zahlung>\n</Bestellung>\n</Bestellliste>\n", $sResult
         );
@@ -188,59 +197,59 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
     {
         $myConfig = $this->getConfig();
 
-        $oOrder = new oxOrder();
+        $oOrder = oxNew(\OxidEsales\Eshop\Application\Model\Order::class);
         $oOrder->setId('_testOrder');
-        $oOrder->oxorder__oxshopid = new oxField($myConfig->getBaseShopId());
-        $oOrder->oxorder__oxuserid = new oxField('oxdefaultadmin');
-        $oOrder->oxorder__oxorderdate = new oxField('2007-02-21 00:00:00');
-        $oOrder->oxorder__oxordernr = new oxField('9991');
-        $oOrder->oxorder__oxbillnr = new oxField('15');
-        $oOrder->oxorder__oxbillcompany = new oxField('billcomp');
-        $oOrder->oxorder__oxbillemail = new oxField('billemail');
-        $oOrder->oxorder__oxbillfname = new oxField('billfname');
-        $oOrder->oxorder__oxbilllname = new oxField('billlname');
-        $oOrder->oxorder__oxbillstreet = new oxField('billstreet');
-        $oOrder->oxorder__oxbillstreetnr = new oxField('billstnr');
-        $oOrder->oxorder__oxbilladdinfo = new oxField('billaddinfo');
-        $oOrder->oxorder__oxbillustid = new oxField('billustid');
-        $oOrder->oxorder__oxbillcity = new oxField('billcity');
-        $oOrder->oxorder__oxbillcountryid = new oxField('a7c40f631fc920687.20179984');
-        $oOrder->oxorder__oxbillzip = new oxField('billzip');
-        $oOrder->oxorder__oxbillfon = new oxField('billfon');
-        $oOrder->oxorder__oxbillfax = new oxField('billfax');
-        $oOrder->oxorder__oxbillsal = new oxField('MR');
-        $oOrder->oxorder__oxpaymentid = new oxField('oxempty');
-        $oOrder->oxorder__oxdelcost = new oxField('1');
-        $oOrder->oxorder__oxdelvat = new oxField('2');
-        $oOrder->oxorder__oxpaycost = new oxField('3');
-        $oOrder->oxorder__oxpayvat = new oxField('4');
-        $oOrder->oxorder__oxwrapcost = new oxField('5');
-        $oOrder->oxorder__oxwrapvat = new oxField('6');
+        $oOrder->oxorder__oxshopid = new Field($myConfig->getBaseShopId());
+        $oOrder->oxorder__oxuserid = new Field($this->adminUserId);
+        $oOrder->oxorder__oxorderdate = new Field('2007-02-21 00:00:00');
+        $oOrder->oxorder__oxordernr = new Field('9991');
+        $oOrder->oxorder__oxbillnr = new Field('15');
+        $oOrder->oxorder__oxbillcompany = new Field('billcomp');
+        $oOrder->oxorder__oxbillemail = new Field('billemail');
+        $oOrder->oxorder__oxbillfname = new Field('billfname');
+        $oOrder->oxorder__oxbilllname = new Field('billlname');
+        $oOrder->oxorder__oxbillstreet = new Field('billstreet');
+        $oOrder->oxorder__oxbillstreetnr = new Field('billstnr');
+        $oOrder->oxorder__oxbilladdinfo = new Field('billaddinfo');
+        $oOrder->oxorder__oxbillustid = new Field('billustid');
+        $oOrder->oxorder__oxbillcity = new Field('billcity');
+        $oOrder->oxorder__oxbillcountryid = new Field('a7c40f631fc920687.20179984');
+        $oOrder->oxorder__oxbillzip = new Field('billzip');
+        $oOrder->oxorder__oxbillfon = new Field('billfon');
+        $oOrder->oxorder__oxbillfax = new Field('billfax');
+        $oOrder->oxorder__oxbillsal = new Field('MR');
+        $oOrder->oxorder__oxpaymentid = new Field('oxempty');
+        $oOrder->oxorder__oxdelcost = new Field('1');
+        $oOrder->oxorder__oxdelvat = new Field('2');
+        $oOrder->oxorder__oxpaycost = new Field('3');
+        $oOrder->oxorder__oxpayvat = new Field('4');
+        $oOrder->oxorder__oxwrapcost = new Field('5');
+        $oOrder->oxorder__oxwrapvat = new Field('6');
 
-        $oOrder->oxorder__oxdelcompany = new oxField('delcomp');
-        $oOrder->oxorder__oxdelfname = new oxField('delfname');
-        $oOrder->oxorder__oxdellname = new oxField('dellname');
-        $oOrder->oxorder__oxdelstreet = new oxField('delstreet');
-        $oOrder->oxorder__oxdelstreetnr = new oxField('delstnr');
-        $oOrder->oxorder__oxdelzip = new oxField('delzip');
-        $oOrder->oxorder__oxdelcity = new oxField('delcity');
-        $oOrder->oxorder__oxdelcountry = new oxField('a7c40f631fc920687.20179984');
+        $oOrder->oxorder__oxdelcompany = new Field('delcomp');
+        $oOrder->oxorder__oxdelfname = new Field('delfname');
+        $oOrder->oxorder__oxdellname = new Field('dellname');
+        $oOrder->oxorder__oxdelstreet = new Field('delstreet');
+        $oOrder->oxorder__oxdelstreetnr = new Field('delstnr');
+        $oOrder->oxorder__oxdelzip = new Field('delzip');
+        $oOrder->oxorder__oxdelcity = new Field('delcity');
+        $oOrder->oxorder__oxdelcountry = new Field('a7c40f631fc920687.20179984');
 
-        $oOrder->oxorder__oxcurrate = new oxField(2.15);
+        $oOrder->oxorder__oxcurrate = new Field(2.15);
 
         $oOrder->save();
 
         // one test order article
-        $oOrderArt = new oxOrderArticle();
+        $oOrderArt = oxNew(\OxidEsales\Eshop\Application\Model\OrderArticle::class);
         $oOrderArt->setId('_testOrderArticle');
-        $oOrderArt->oxorderarticles__oxorderid = new oxField('_testOrder');
-        $oOrderArt->oxorderarticles__oxvat = new oxField(19);
-        $oOrderArt->oxorderarticles__oxartnum = new oxField('1126');
-        $oOrderArt->oxorderarticles__oxamount = new oxField(1);
-        $oOrderArt->oxorderarticles__oxtitle = new oxField('Bar-Set ABSINTH');
-        $oOrderArt->oxorderarticles__oxselvariant = new oxField('oxselvariant');
-        $oOrderArt->oxorderarticles__oxnetprice = new oxField(28.57);
-        $oOrderArt->oxorderarticles__oxbrutprice = new oxField(34);
+        $oOrderArt->oxorderarticles__oxorderid = new Field('_testOrder');
+        $oOrderArt->oxorderarticles__oxvat = new Field(19);
+        $oOrderArt->oxorderarticles__oxartnum = new Field('1126');
+        $oOrderArt->oxorderarticles__oxamount = new Field(1);
+        $oOrderArt->oxorderarticles__oxtitle = new Field('Bar-Set ABSINTH');
+        $oOrderArt->oxorderarticles__oxselvariant = new Field('oxselvariant');
+        $oOrderArt->oxorderarticles__oxnetprice = new Field(28.57);
+        $oOrderArt->oxorderarticles__oxbrutprice = new Field(34);
         $oOrderArt->save();
 
         $myConfig = $this->getConfig();
@@ -248,13 +257,13 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
         $oImex = new OeLexwareExportImex();
         $sResult = str_replace(array("\r", "   "), '', $oImex->exportLexwareOrders(9991, 9991));
         $this->assertEquals(
-            "<?xml version=\"1.0\" encoding=\"ISO-8859-15\"?>\n<Bestellliste>\n<Bestellung zur¸ckgestellt=\"Nein\" bearbeitet=\"Nein\" ¸bertragen=\"Nein\">\n"
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Bestellliste>\n<Bestellung zur√ºckgestellt=\"Nein\" bearbeitet=\"Nein\" √ºbertragen=\"Nein\">\n"
             . "<Bestellnummer>9991</Bestellnummer>\n<Rechnungsnummer>15</Rechnungsnummer>\n<Standardwaehrung>978</Standardwaehrung>\n<Bestelldatum>\n<Datum>21.02.2007</Datum>\n<Zeit>00:00:00</Zeit>\n</Bestelldatum>\n<Kunde>\n<Kundennummer></Kundennummer>\n"
             . "<Firmenname>billcomp</Firmenname>\n<Anrede>Herr</Anrede>\n<Vorname>billfname</Vorname>\n<Name>billlname</Name>\n<Strasse>billstreet billstnr</Strasse>\n"
             . "<PLZ>billzip</PLZ>\n<Ort>billcity</Ort>\n<Bundesland></Bundesland>\n<Land>Deutschland</Land>\n<Email>billemail</Email>\n<Telefon>billfon</Telefon>\n<Telefon2></Telefon2>\n"
             . "<Fax>billfax</Fax>\n<Lieferadresse>\n<Firmenname>delcomp</Firmenname>\n<Vorname>delfname</Vorname>\n<Name>dellname</Name>\n<Strasse>delstreet delstnr</Strasse>\n<PLZ>delzip</PLZ>\n<Ort>delcity</Ort>\n<Bundesland></Bundesland>\n"
             . "<Land></Land>\n</Lieferadresse>\n<Matchcode>billlname, billfname</Matchcode>\n<fSteuerbar>ja</fSteuerbar>\n</Kunde>\n<Artikelliste>\n<Artikel>\n<Artikelzusatzinfo><Nettostaffelpreis></Nettostaffelpreis></Artikelzusatzinfo>\n"
-            . "<SteuersatzID></SteuersatzID>\n<Steuersatz>0.19</Steuersatz>\n<Artikelnummer>1126</Artikelnummer>\n<Anzahl>1</Anzahl>\n<Produktname>Bar-Set ABSINTH/oxselvariant</Produktname>\n"
+            . "<SteuersatzID>1</SteuersatzID>\n<Steuersatz>0.19</Steuersatz>\n<Artikelnummer>1126</Artikelnummer>\n<Anzahl>1</Anzahl>\n<Produktname>Bar-Set ABSINTH/oxselvariant</Produktname>\n"
             . "<Rabatt>0.00</Rabatt>\n<Preis>15.81</Preis>\n</Artikel>\n<GesamtRabatt>0.00</GesamtRabatt>\n<GesamtNetto>13.29</GesamtNetto>\n"
             . "<Lieferkosten>0.47</Lieferkosten>\n<Zahlungsartkosten>1.40</Zahlungsartkosten>\n<GesamtBrutto>15.81</GesamtBrutto>\n<Bemerkung></Bemerkung>\n</Artikelliste>\n<Zahlung>\n<Art></Art>\n</Zahlung>\n</Bestellung>\n</Bestellliste>\n", $sResult
         );
@@ -264,12 +273,12 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
     {
         $myConfig = $this->getConfig();
 
-        $oOrder = new oxOrder();
+        $oOrder = oxNew(\OxidEsales\Eshop\Application\Model\Order::class);
         $oOrder->setId('_testOrder');
-        $oOrder->oxorder__oxshopid = new oxField($myConfig->getBaseShopId());
-        $oOrder->oxorder__oxuserid = new oxField('oxdefaultadmin');
-        $oOrder->oxorder__oxorderdate = new oxField('2007-02-21 00:00:00');
-        $oOrder->oxorder__oxordernr = new oxField('9991');
+        $oOrder->oxorder__oxshopid = new Field($myConfig->getBaseShopId());
+        $oOrder->oxorder__oxuserid = new Field($this->adminUserId);
+        $oOrder->oxorder__oxorderdate = new Field('2007-02-21 00:00:00');
+        $oOrder->oxorder__oxordernr = new Field('9991');
         $oOrder->save();
 
         $oImex = $this->getMock('OeLexwareExportImex', array('_getCharset'));
@@ -287,18 +296,18 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
     {
         $myConfig = $this->getConfig();
 
-        $oOrder = new oxOrder();
+        $oOrder = oxNew(\OxidEsales\Eshop\Application\Model\Order::class);
         $oOrder->setId('_testOrder');
-        $oOrder->oxorder__oxshopid = new oxField($myConfig->getBaseShopId());
-        $oOrder->oxorder__oxuserid = new oxField('oxdefaultadmin');
-        $oOrder->oxorder__oxorderdate = new oxField('2007-02-21 00:00:00');
-        $oOrder->oxorder__oxordernr = new oxField('9991');
+        $oOrder->oxorder__oxshopid = new Field($myConfig->getBaseShopId());
+        $oOrder->oxorder__oxuserid = new Field($this->adminUserId);
+        $oOrder->oxorder__oxorderdate = new Field('2007-02-21 00:00:00');
+        $oOrder->oxorder__oxordernr = new Field('9991');
         $oOrder->save();
 
         $oImex = $this->getMock('OeLexwareExportImex', array('_getCharset', '_convertStr'));
         $oImex->expects($this->any())->method('_getCharset')->will($this->returnValue('UTF-8'));
-        $oImex->expects($this->at(1))->method('_convertStr')->with($this->equalTo("zur\xfcckgestellt")); // \xfc = ¸
-        $oImex->expects($this->at(2))->method('_convertStr')->with($this->equalTo("\xfcbertragen")); // \xfc = ¸
+        $oImex->expects($this->at(1))->method('_convertStr')->with($this->equalTo("zur√ºckgestellt"));
+        $oImex->expects($this->at(2))->method('_convertStr')->with($this->equalTo("√ºbertragen"));
 
         $sResult = $oImex->exportLexwareOrders(9991, 9991);
     }
@@ -311,6 +320,6 @@ class OeLexwareExportImexTest extends OxidEsales\TestingLibrary\UnitTestCase
         $oImex = $this->getMock('OeLexwareExportImex', array('_getCharset'));
         $oImex->expects($this->any())->method('_getCharset')->will($this->returnValue('UTF-8'));
 
-        $this->assertEquals(iconv('ISO-8859-15', 'UTF-8', "zur\xfcckgestellt"), $oImex->UNITconvertStr("zur\xfcckgestellt"));
+        $this->assertEquals("zur√ºckgestellt", $oImex->UNITconvertStr("zur√ºckgestellt"));
     }
 }
