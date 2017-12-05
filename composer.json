@@ -1,5 +1,5 @@
 {
-  "name": "oxid-esales/lexware-export-module",
+  "name": "oxid-projects/lexware-export-module",
   "description": "This module exports order information into an XML format.",
   "type": "oxideshop-module",
   "keywords": ["oxid", "modules", "eShop"],
