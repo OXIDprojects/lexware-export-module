@@ -2,7 +2,7 @@
 
 ## Description
 
-This module exports order information into an XML format.
+This module for OXID eShop Community and Professional Edition exports order information into an XML format. 
 
 ### Requirements
 
